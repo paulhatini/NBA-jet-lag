@@ -3,10 +3,14 @@ from basketball_reference_web_scraper import client
 from basketball_reference_web_scraper.data import Team
 import pandas as pd
 import csv
+from datetime import datetime, timedelta
+import mpu
 
 coords_df = pd.read_csv("~/Downloads/uscities.csv")
 
 schedule = pd.DataFrame(client.season_schedule(season_end_year=2018))
+schedule['start_time'] = schedule['start_time'] - timedelta(hours=4, minutes=0)
+
 schedule.home_team = schedule.home_team.astype(str)
 schedule.away_team = schedule.away_team.astype(str)
 
@@ -39,14 +43,52 @@ state_dict = {'CLEVELAND_CAVALIERS': 'Ohio', 'GOLDEN_STATE_WARRIORS': 'Californi
               'HOUSTON_ROCKETS': 'Texas', 'MIAMI_HEAT': 'Miami', 'NEW_YORK_KNICKS': 'New York',
               'DENVER_NUGGETS': 'Colorado', 'LOS_ANGELES_CLIPPERS': 'California',
               'PORTLAND_TRAIL_BLAZERS': 'Oregon', 'ATLANTA_HAWKS': 'Georgia'}
+team_abbv_dict = {
+  "ATLANTA_HAWKS": "ATL",
+  "BOSTON_CELTICS": "BOS",
+  "BROOKLYN_NETS": "BKN",
+  "CHARLOTTE_BOBCATS": "CHA",
+  "CHARLOTTE_HORNETS": "CHO",
+  "CHICAGO_BULLS": "CHI",
+  "CLEVELAND_CAVALIERS": "CLE",
+  "DALLAS_MAVERICKS": "DAL",
+  "DENVER_NUGGETS": "DEN",
+  "DETROIT_PISTONS": "DET",
+  "GOLDEN_STATE_WARRIORS": "GSW",
+  "HOUSTON_ROCKETS": "HOU",
+  "INDIANA_PACERS": "IND",
+  "LOS_ANGELES_CLIPPERS": "LAC",
+  "LOS_ANGELES_LAKERS": "LAL",
+  "MEMPHIS_GRIZZLIES": "MEM",
+  "MIAMI_HEAT": "MIA",
+  "MILWAUKEE_BUCKS": "MIL",
+  "MINNESOTA_TIMBERWOLVES": "MIN",
+  "NEW_ORLEANS_HORNETS": "NOH",
+  "NEW_ORLEANS_PELICANS": "NOP",
+  "NEW_YORK_KNICKS": "NYK",
+  "OKLAHOMA_CITY_THUNDER": "OKC",
+  "ORLANDO_MAGIC": "ORL",
+  "PHILADELPHIA_76ERS": "PHI",
+  "PHOENIX_SUNS": "PHO",
+  "PORTLAND_TRAIL_BLAZERS": "POR",
+  "SACRAMENTO_KINGS": "SAC",
+  "SAN_ANTONIO_SPURS": "SAS",
+  "TORONTO_RAPTORS": "TOR",
+  "UTAH_JAZZ": "UTA",
+  "WASHINGTON_WIZARDS": "WAS"
+}
 
+schedule['home_team_abbv'] = 0
 schedule['home_city'] = 0
 schedule['home_state'] = 0
 # Fix team names and abbreviations based on dictionary
 schedule['home_city'] = schedule['home_team'].map(city_dict)
 schedule['home_state'] = schedule['home_team'].map(state_dict)
+schedule['home_team_abbv'] = schedule['home_team'].map(team_abbv_dict)
 
-boston_check = schedule[(schedule['home_team'] == "BOSTON_CELTICS") | (schedule['away_team'] == "BOSTON_CELTICS")]
+
+boston_check = schedule[(schedule['home_team'] == "BOSTON_CELTICS") |
+                        (schedule['away_team'] == "BOSTON_CELTICS")].reset_index(drop=True)
 
 
 def attach_coordinates(df, coordinate_data):
@@ -56,5 +98,21 @@ def attach_coordinates(df, coordinate_data):
     return new_df
 
 
-full_df = attach_coordinates(boston_check, coords_df)
+full_df = attach_coordinates(boston_check, coords_df).reset_index(drop=True)
 
+
+full_df['Prev_lat'] = full_df["lat"].shift(1)
+full_df['Prev_lng'] = full_df["lng"].shift(1)
+full_df.loc[full_df['Prev_lat'].isnull(), 'Prev_lat'] = full_df['lat']
+full_df.loc[full_df['Prev_lng'].isnull(), 'Prev_lng'] = full_df['lng']
+
+full_df["Dist_Km"] = full_df.apply(lambda x:
+                                   mpu.haversine_distance((x['Prev_lat'], x['Prev_lng']),
+                                                          (x['lat'], x['lng'])), axis=1)
+full_df['Dist_Mi'] = full_df['Dist_Km']*(5/8)
+
+full_df['code'] = 0
+full_df['code'] = full_df['start_time'].dt.strftime('%Y%m%d') + str(0) + full_df['home_team_abbv']
+
+del full_df['city'], full_df['state_name']
+full_df.to_csv("~/Downloads/celtics_travel_test.csv")
