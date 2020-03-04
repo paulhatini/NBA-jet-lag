@@ -25,22 +25,22 @@ city_dict = {'CLEVELAND_CAVALIERS': 'Cleveland', 'GOLDEN_STATE_WARRIORS': 'San F
              'PHOENIX_SUNS': 'Phoenix', 'SACRAMENTO_KINGS': 'Sacramento', 'TORONTO_RAPTORS': 'Toronto',
              'OKLAHOMA_CITY_THUNDER': 'Oklahoma City', 'LOS_ANGELES_LAKERS': 'Los Angeles',
              'CHARLOTTE_HORNETS': 'Charlotte', 'MILWAUKEE_BUCKS': 'Milwaukee', 'PHILADELPHIA_76ERS': 'Philadelphia',
-             'BROOKLYN_NETS': 'Brooklyn', 'MINNESOTA_TIMBERWOLVES': 'Minnesota',
+             'BROOKLYN_NETS': 'Brooklyn', 'MINNESOTA_TIMBERWOLVES': 'Minneapolis',
              'NEW_ORLEANS_PELICANS': 'New Orleans', 'CHICAGO_BULLS': 'Chicago',
-             'HOUSTON_ROCKETS': 'Houston', 'MIAMI_HEAT': 'Miami', 'NEW_YORK_KNICKS': 'Manhattan',
+             'HOUSTON_ROCKETS': 'Houston', 'MIAMI_HEAT': 'Key Biscayne', 'NEW_YORK_KNICKS': 'Manhattan',
              'DENVER_NUGGETS': 'Denver', 'LOS_ANGELES_CLIPPERS': 'Los Angeles',
              'PORTLAND_TRAIL_BLAZERS': 'Portland', 'ATLANTA_HAWKS': 'Atlanta'}
 state_dict = {'CLEVELAND_CAVALIERS': 'Ohio', 'GOLDEN_STATE_WARRIORS': 'California', 'DETROIT_PISTONS': 'Michigan',
-              'INDIANA_PACERS': 'Indiana', 'ORLANDO_MAGIC': 'Orlando', 'WASHINGTON_WIZARDS': 'District of Columbia',
-              'BOSTON_CELTICS': 'Massachusetts', 'MEMPHIS_GRIZZLIES': 'Memphis', 'DALLAS_MAVERICKS': 'Texas',
+              'INDIANA_PACERS': 'Indiana', 'ORLANDO_MAGIC': 'Florida', 'WASHINGTON_WIZARDS': 'District of Columbia',
+              'BOSTON_CELTICS': 'Massachusetts', 'MEMPHIS_GRIZZLIES': 'Tennessee', 'DALLAS_MAVERICKS': 'Texas',
               'UTAH_JAZZ': 'Utah', 'SAN_ANTONIO_SPURS': 'Texas',
               'PHOENIX_SUNS': 'Arizona', 'SACRAMENTO_KINGS': 'California', 'TORONTO_RAPTORS': 'Canada',
               'OKLAHOMA_CITY_THUNDER': 'Oklahoma', 'LOS_ANGELES_LAKERS': 'California',
-              'CHARLOTTE_HORNETS': 'South Carolina', 'MILWAUKEE_BUCKS': 'Wisconsin',
+              'CHARLOTTE_HORNETS': 'North Carolina', 'MILWAUKEE_BUCKS': 'Wisconsin',
               'PHILADELPHIA_76ERS': 'Pennsylvania',
               'BROOKLYN_NETS': 'New York', 'MINNESOTA_TIMBERWOLVES': 'Minnesota',
               'NEW_ORLEANS_PELICANS': 'Louisiana', 'CHICAGO_BULLS': 'Illinois',
-              'HOUSTON_ROCKETS': 'Texas', 'MIAMI_HEAT': 'Miami', 'NEW_YORK_KNICKS': 'New York',
+              'HOUSTON_ROCKETS': 'Texas', 'MIAMI_HEAT': 'Florida', 'NEW_YORK_KNICKS': 'New York',
               'DENVER_NUGGETS': 'Colorado', 'LOS_ANGELES_CLIPPERS': 'California',
               'PORTLAND_TRAIL_BLAZERS': 'Oregon', 'ATLANTA_HAWKS': 'Georgia'}
 team_abbv_dict = {
@@ -99,6 +99,9 @@ def attach_coordinates(df, coordinate_data):
 
 
 full_df = attach_coordinates(boston_check, coords_df).reset_index(drop=True)
+# missed = boston_check[~boston_check['start_time'].isin(full_df['start_time'])]
+# working_df_use = working_data_all[~working_data_all['Ticker'].isin(bad_tickers)].reset_index(drop=True)
+
 
 
 full_df['Prev_lat'] = full_df["lat"].shift(1)
