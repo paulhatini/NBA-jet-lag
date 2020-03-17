@@ -10,6 +10,8 @@ library(dplyr)
 library(hash)
 library(stringr)
 
+rm(list=ls())
+
 years = c(2013:2019)
 months = c('october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june')
 urls = list()
@@ -46,7 +48,7 @@ levels(as.factor(NBAref$Visitor.Neutral))
 NBAdict <- hash(
   "Atlanta Hawks" = "ATL",
   "Boston Celtics" = "BOS",
-  "Brooklyn Nets" = "BKN",
+  "Brooklyn Nets" = "BRK",
   "Charlotte Bobcats" = "CHA",
   "Charlotte Hornets" = "CHO",
   "Chicago Bulls" = "CHI",
@@ -85,17 +87,13 @@ for (i in 1:nrow(NBAref)) {
 
 NBAref$Date <- as.Date(NBAref$Date, "%a, %b %d, %Y")
 
-for (i in 1:length(NBAref)) {
-  NBAref$Date[i] <- toString(NBAref$Date[i])
+for (i in 1:nrow(NBAref)) {
+  NBAref$Code[i] <- toString(NBAref$Date[i])
 }
 
-NBAref$Date <- str_replace_all(NBAref$Date, "[[:punct:]]", "")
+NBAref$Code <- str_replace_all(NBAref$Code, "[[:punct:]]", "")
 
-NBAref$Code <- paste0(NBAref$Date, "0", NBAref$Home.Neutral)
-
-head(NBAref)
-
-code <- "201210300CLE"
+NBAref$Code <- paste0(NBAref$Code, "0", NBAref$Home.Neutral)
 
 feature.scraper <- function(code){
   code <- toString(code)
@@ -125,5 +123,50 @@ feature.scraper <- function(code){
   return(row)
 }
 
-test <- do.call(rbind, apply(as.array(head(NBAref$Code)), 1, feature.scraper))
-nrow(NBAref)
+celtics.subset <- NBAref[which(NBAref$Visitor.Neutral == "BOS" | NBAref$Home.Neutral == "BOS"),]
+celtics.subset <- subset(celtics.subset, Date > "2017-08-01" & Date < "2018-08-01")
+cs.scrape <- do.call(rbind, apply(as.array(celtics.subset$Code), 1, feature.scraper))
+write.csv(cs.scrape, "cs.scrape.csv")
+
+
+scrape.1 <- do.call(rbind, apply(as.array(NBAref$Code[1:1000]), 1, feature.scraper))
+scrape.2 <- do.call(rbind, apply(as.array(NBAref$Code[1001:2000]), 1, feature.scraper))
+scrape.3 <- do.call(rbind, apply(as.array(NBAref$Code[2001:3000]), 1, feature.scraper))
+scrape.4 <- do.call(rbind, apply(as.array(NBAref$Code[3001:4000]), 1, feature.scraper))
+scrape.5 <- do.call(rbind, apply(as.array(NBAref$Code[4001:5000]), 1, feature.scraper))
+scrape.6 <- do.call(rbind, apply(as.array(NBAref$Code[5001:6000]), 1, feature.scraper))
+scrape.7 <- do.call(rbind, apply(as.array(NBAref$Code[6001:7000]), 1, feature.scraper))
+scrape.8 <- do.call(rbind, apply(as.array(NBAref$Code[7001:8000]), 1, feature.scraper))
+scrape.9 <- do.call(rbind, apply(as.array(NBAref$Code[8001:9000]), 1, feature.scraper))
+
+scrape <- rbind(scrape.1, scrape.2, scrape.3, scrape.4, scrape.5, scrape.6, scrape.7, scrape.8, scrape.9)
+write.csv(scrape, "scrape.csv")
+
+
+
+celtics_travel_test <- read.csv("celtics_travel_test.csv")
+names(celtics_travel_test)[16] <- "Code"
+celtics_merged_test <- merge(celtics.subset, celtics_travel_test, by="Code", all.x = TRUE)
+#write.csv(celtics_merged_test, "celtics_merged_test.csv")
+
+usc <- read.csv("uscities.csv", stringsAsFactors=FALSE)
+
+typeof(usc$city)
+usc$city[1]
+celtics_merged_test$home_city
+
+usc$timezomes <- toString(usc$timezone)
+
+for (i in 1:nrow(celtics_merged_test)) {
+  celtics_merged_test$game.tz[i] <- usc[which(usc$city == toString(celtics_merged_test$home_city[i]) & usc$state_name == toString(celtics_merged_test$home_state[i])),][16]
+}
+
+usc$timezone
+celtics_merged_test$game.tz
+
+head(celtics_merged_test)
+usc[which(usc$city == toString(celtics_merged_test$home_city[2]) & usc$state_name == "Massachusetts"),][16]
+
+head(celtics_merged_test)
+celtics_merged_test$home_city[2]
+
