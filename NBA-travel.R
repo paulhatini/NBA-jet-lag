@@ -138,8 +138,11 @@ scrape.6 <- do.call(rbind, apply(as.array(NBAref$Code[5001:6000]), 1, feature.sc
 scrape.7 <- do.call(rbind, apply(as.array(NBAref$Code[6001:7000]), 1, feature.scraper))
 scrape.8 <- do.call(rbind, apply(as.array(NBAref$Code[7001:8000]), 1, feature.scraper))
 scrape.9 <- do.call(rbind, apply(as.array(NBAref$Code[8001:9000]), 1, feature.scraper))
+scrape.10 <- do.call(rbind, apply(as.array(NBAref$Code[9001:9193]), 1, feature.scraper))
 
-scrape <- rbind(scrape.1, scrape.2, scrape.3, scrape.4, scrape.5, scrape.6, scrape.7, scrape.8, scrape.9)
+nrow(NBAref)
+
+scrape <- rbind(scrape.1, scrape.2, scrape.3, scrape.4, scrape.5, scrape.6, scrape.7, scrape.8, scrape.9, scrape.10)
 write.csv(scrape, "scrape.csv")
 
 
@@ -161,12 +164,58 @@ for (i in 1:nrow(celtics_merged_test)) {
   celtics_merged_test$game.tz[i] <- usc[which(usc$city == toString(celtics_merged_test$home_city[i]) & usc$state_name == toString(celtics_merged_test$home_state[i])),][16]
 }
 
-usc$timezone
-celtics_merged_test$game.tz
+
 
 head(celtics_merged_test)
 usc[which(usc$city == toString(celtics_merged_test$home_city[2]) & usc$state_name == "Massachusetts"),][16]
 
-head(celtics_merged_test)
-celtics_merged_test$home_city[2]
+
+
+
+
+
+
+names(scrape)[2] <- "Code"
+merged <- merge(scrape, NBAref, by="Code", all.x = FALSE)
+merged$season <- 0
+
+for (i in 1:nrow(merged)) {
+  if(merged$Date[i] > "2012-10-02" && merged$Date[i] < "2013-10-01") {
+    merged$season[i] <- "2013"
+  }
+  if(merged$Date[i] > "2013-10-02" && merged$Date[i] < "2014-10-01") {
+    merged$season[i] <- "2014"
+  }
+  if(merged$Date[i] > "2014-10-02" && merged$Date[i] < "2015-10-01") {
+    merged$season[i] <- "2015"
+  }
+  if(merged$Date[i] > "2015-10-02" && merged$Date[i] < "2016-10-01") {
+    merged$season[i] <- "2016"
+  }
+  if(merged$Date[i] > "2016-10-02" && merged$Date[i] < "2017-10-01") {
+    merged$season[i] <- "2017"
+  }
+  if(merged$Date[i] > "2017-10-02" && merged$Date[i] < "2018-10-01") {
+    merged$season[i] <- "2018"
+  }
+  if(merged$Date[i] > "2018-10-02" && merged$Date[i] < "2019-10-01") {
+    merged$season[i] <- "2019"
+  }
+}
+
+tail(merged)
+
+abrev <- c("ATL", "BOS", "BRK", "CHA", "CHO", "CHI", "CLE", "DAL", "DEN", "DET", "GSW", "HOU",
+           "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NOH", "NOP", "NYK", "OKC", "ORL", 
+           "PHI", "PHO", "POR", "SAC", "SAS", "TOR", "UTA", "WAS")
+
+
+for(i in 1:length(abrev)) { 
+  nam <- paste(abrev[i], ".subset", sep = "")
+  assign(nam, merged[which(merged$Visitor.Neutral == abrev[i] | merged$Home.Neutral == abrev[i]),])
+}
+
+
+
+
 
