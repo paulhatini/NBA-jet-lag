@@ -27,8 +27,6 @@ tbl = list()
 years = 2010
 j = 1
 
-length(urls)
-
 for (j in seq_along(urls)) {
   tbl[[j]] = urls[[j]] %>%
     read_html() %>%
@@ -140,8 +138,6 @@ scrape.8 <- do.call(rbind, apply(as.array(NBAref$Code[7001:8000]), 1, feature.sc
 scrape.9 <- do.call(rbind, apply(as.array(NBAref$Code[8001:9000]), 1, feature.scraper))
 scrape.10 <- do.call(rbind, apply(as.array(NBAref$Code[9001:9193]), 1, feature.scraper))
 
-nrow(NBAref)
-
 scrape <- rbind(scrape.1, scrape.2, scrape.3, scrape.4, scrape.5, scrape.6, scrape.7, scrape.8, scrape.9, scrape.10)
 write.csv(scrape, "scrape.csv")
 
@@ -216,6 +212,117 @@ for(i in 1:length(abrev)) {
 }
 
 
+merged <- merge(scrape, `2017_18_schedule_travel`, by="code", all.x = FALSE, all.y = TRUE)
 
+
+merged$index.pace <- 0
+merged$index.efg <- 0
+merged$index.tov <- 0
+merged$index.orb <- 0
+merged$index.ftprb <- 0
+merged$index.ortg <- 0
+merged$index.points <- 0
+
+for (i in 1:nrow(merged)) {
+  if (merged$home_team[i] == merged$index_team[i]) {
+    merged$index.pace[i] <- merged$home.pace[i]
+    merged$index.efg[i] <- merged$home.efg[i]
+    merged$index.tov[i] <- merged$home.tov[i]
+    merged$index.orb[i] <- merged$home.orb[i]
+    merged$index.ftprb[i] <- merged$home.ftprb[i]
+    merged$index.ortg[i] <- merged$home.ortg[i]
+    merged$index.points[i] <- merged$home_team_score[i]
+    
+  }
+  if (merged$away_team[i] == merged$index_team[i]) {
+    merged$index.pace[i] <- merged$away.pace[i]
+    merged$index.efg[i] <- merged$away.efg[i]
+    merged$index.tov[i] <- merged$away.tov[i]
+    merged$index.orb[i] <- merged$away.orb[i]
+    merged$index.ftprb[i] <- merged$away.ftprb[i]
+    merged$index.ortg[i] <- merged$away.ortg[i]
+    merged$index.points[i] <- merged$away_team_score[i]
+  }
+}
+
+fit <- lm(Dist_Km ~ index.pace + index.ftprb + index.orb + index.tov + index.efg + index.ortg, data  = merged)
+summary(fit)
+
+for(i in 1:length(abrev)) { 
+  nam <- paste(abrev[i], ".subset", sep = "")
+  assign(nam, merged[which(merged$Visitor.Neutral == abrev[i] | merged$Home.Neutral == abrev[i]),])
+}
+
+
+
+mean(merged[which(merged$away_team == "BOSTON_CELTICS" | merged$home_team == "BOSTON_CELTICS"),])
+
+averager <- function(df){
+  for (i in df$season)
+  return(row)
+}
+
+merged$season_end_year <- as.factor(merged$season_end_year)
+
+typeof(merged$index)
+
+index.average.ortg <- 0
+mean(head(merged$index.pace))
+
+for (i in 1:length(levels(merged$season_end_year))) {
+  for (j in 1:length(levels(merged$index_team))) {
+    team <- toString(levels(merged$index_team)[j])
+    season <- toString(levels(merged$season_end_year)[i])
+    index.average.pace <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+    index.average.efg <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+    index.average.tov <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+    index.average.orb <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+    index.average.ftprb <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+    index.average.ortg <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),37])
+    index.average.ppg <- mean(merged[which(merged$index_team == toString(levels(merged$index_team)[j]) & merged$season_end_year == toString(levels(merged$season_end_year)[i])),38])
+  }
+}
+
+length(merged$index.points)
+length(na.omit(merged$index.points))
+
+length(merged$index.ortg)
+length(na.omit(merged$index.ortg))
+length(merged$index.ftprb)
+length(na.omit(merged$index.ftprb))
+length(merged$index.tov)
+length(na.omit(merged$index.tov))
+
+
+head(merged)
+typeof(merged$index.pace)
+
+feature.scraper <- function(code){
+  code <- toString(code)
+  url <- paste0('https://www.basketball-reference.com/boxscores/',code,'.html')
+  game <- readLines(url)
+  
+  four.factor.away <- grep(x=game, "pace", value=TRUE)[4]
+  away.pace <- str_match(four.factor.away, '.*pace\"\\s>(.*?)<.*')[2]
+  away.efg <- str_match(four.factor.away, '.*efg_pct\"\\s>(.*?)<.*')[2]
+  away.tov <- str_match(four.factor.away, '.*tov_pct\"\\s>(.*?)<.*')[2]
+  away.orb <- str_match(four.factor.away, '.*orb_pct\"\\s>(.*?)<.*')[2]
+  away.ftprb <- str_match(four.factor.away, '.*ft_rate\"\\s>(.*?)<.*')[2]
+  away.ortg <- str_match(four.factor.away, '.*off_rtg\"\\s>(.*?)<.*')[2]
+  
+  four.factor.home <- grep(x=game, "pace", value=TRUE)[5]
+  home.pace <- str_match(four.factor.home, '.*pace\"\\s>(.*?)<.*')[2]
+  home.efg <- str_match(four.factor.home, '.*efg_pct\"\\s>(.*?)<.*')[2]
+  home.tov <- str_match(four.factor.home, '.*tov_pct\"\\s>(.*?)<.*')[2]
+  home.orb <- str_match(four.factor.home, '.*orb_pct\"\\s>(.*?)<.*')[2]
+  home.ftprb <- str_match(four.factor.home, '.*ft_rate\"\\s>(.*?)<.*')[2]
+  home.ortg <- str_match(four.factor.home, '.*off_rtg\"\\s>(.*?)<.*')[2]
+  
+  row <- data.frame(code, 
+                    away.pace, away.efg, away.tov, away.orb, away.ftprb, away.ortg, 
+                    home.pace, home.efg, home.tov, home.orb, home.ftprb, home.ortg,
+                    stringsAsFactors = FALSE)
+  return(row)
+}
 
 
