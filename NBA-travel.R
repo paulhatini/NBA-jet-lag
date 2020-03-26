@@ -38,10 +38,7 @@ for (j in seq_along(urls)) {
 NBAref = ldply(tbl, data.frame)
 NBAref <- NBAref[1:6]
 NBAref <- NBAref[-which(NBAref$Visitor.Neutral == "Playoffs"),]
-
 NBAref <- NBAref[1:6]
-
-levels(as.factor(NBAref$Visitor.Neutral))
 
 NBAdict <- hash(
   "Atlanta Hawks" = "ATL",
@@ -98,7 +95,7 @@ feature.scraper <- function(code){
   url <- paste0('https://www.basketball-reference.com/boxscores/',code,'.html')
   game <- readLines(url)
   
-  four.factor.away <- grep(x=game, "pace", value=TRUE)[4]
+  four.factor.away <- grep(x=game, "pace\"", value=TRUE)[2]
   away.pace <- str_match(four.factor.away, '.*pace\"\\s>(.*?)<.*')[2]
   away.efg <- str_match(four.factor.away, '.*efg_pct\"\\s>(.*?)<.*')[2]
   away.tov <- str_match(four.factor.away, '.*tov_pct\"\\s>(.*?)<.*')[2]
@@ -106,7 +103,7 @@ feature.scraper <- function(code){
   away.ftprb <- str_match(four.factor.away, '.*ft_rate\"\\s>(.*?)<.*')[2]
   away.ortg <- str_match(four.factor.away, '.*off_rtg\"\\s>(.*?)<.*')[2]
 
-  four.factor.home <- grep(x=game, "pace", value=TRUE)[5]
+  four.factor.home <- grep(x=game, "pace\"", value=TRUE)[3]
   home.pace <- str_match(four.factor.home, '.*pace\"\\s>(.*?)<.*')[2]
   home.efg <- str_match(four.factor.home, '.*efg_pct\"\\s>(.*?)<.*')[2]
   home.tov <- str_match(four.factor.home, '.*tov_pct\"\\s>(.*?)<.*')[2]
@@ -121,11 +118,13 @@ feature.scraper <- function(code){
   return(row)
 }
 
-celtics.subset <- NBAref[which(NBAref$Visitor.Neutral == "BOS" | NBAref$Home.Neutral == "BOS"),]
-celtics.subset <- subset(celtics.subset, Date > "2017-08-01" & Date < "2018-08-01")
-cs.scrape <- do.call(rbind, apply(as.array(celtics.subset$Code), 1, feature.scraper))
-write.csv(cs.scrape, "cs.scrape.csv")
 
+
+
+#celtics.subset <- NBAref[which(NBAref$Visitor.Neutral == "BOS" | NBAref$Home.Neutral == "BOS"),]
+#celtics.subset <- subset(celtics.subset, Date > "2017-08-01" & Date < "2018-08-01")
+#cs.scrape <- do.call(rbind, apply(as.array(celtics.subset$Code), 1, feature.scraper))
+#write.csv(cs.scrape, "cs.scrape.csv")
 
 scrape.1 <- do.call(rbind, apply(as.array(NBAref$Code[1:1000]), 1, feature.scraper))
 scrape.2 <- do.call(rbind, apply(as.array(NBAref$Code[1001:2000]), 1, feature.scraper))
@@ -140,15 +139,19 @@ scrape.10 <- do.call(rbind, apply(as.array(NBAref$Code[9001:9193]), 1, feature.s
 
 scrape <- rbind(scrape.1, scrape.2, scrape.3, scrape.4, scrape.5, scrape.6, scrape.7, scrape.8, scrape.9, scrape.10)
 write.csv(scrape, "scrape.csv")
+scrape <- read.csv(file = 'scrape.csv')
 
 
 
-celtics_travel_test <- read.csv("celtics_travel_test.csv")
-names(celtics_travel_test)[16] <- "Code"
-celtics_merged_test <- merge(celtics.subset, celtics_travel_test, by="Code", all.x = TRUE)
+
+
+
+#celtics_travel_test <- read.csv("celtics_travel_test.csv")
+#names(celtics_travel_test)[16] <- "Code"
+#celtics_merged_test <- merge(celtics.subset, celtics_travel_test, by="Code", all.x = TRUE)
 #write.csv(celtics_merged_test, "celtics_merged_test.csv")
 
-usc <- read.csv("uscities.csv", stringsAsFactors=FALSE)
+'''usc <- read.csv("uscities.csv", stringsAsFactors=FALSE)
 
 typeof(usc$city)
 usc$city[1]
@@ -163,7 +166,7 @@ for (i in 1:nrow(celtics_merged_test)) {
 
 
 head(celtics_merged_test)
-usc[which(usc$city == toString(celtics_merged_test$home_city[2]) & usc$state_name == "Massachusetts"),][16]
+usc[which(usc$city == toString(celtics_merged_test$home_city[2]) & usc$state_name == "Massachusetts"),][16]'''
 
 
 
@@ -171,9 +174,7 @@ usc[which(usc$city == toString(celtics_merged_test$home_city[2]) & usc$state_nam
 
 
 
-names(scrape)[2] <- "Code"
-merged <- merge(scrape, NBAref, by="Code", all.x = FALSE)
-merged$season <- 0
+merged <- merge(scrape, `2017_18_schedule_travel`, by="code", all.x = FALSE, all.y = TRUE)
 
 for (i in 1:nrow(merged)) {
   if(merged$Date[i] > "2012-10-02" && merged$Date[i] < "2013-10-01") {
@@ -212,7 +213,6 @@ for(i in 1:length(abrev)) {
 }
 
 
-merged <- merge(scrape, `2017_18_schedule_travel`, by="code", all.x = FALSE, all.y = TRUE)
 
 
 merged$index.pace <- 0
@@ -264,10 +264,7 @@ averager <- function(df){
 
 merged$season_end_year <- as.factor(merged$season_end_year)
 
-typeof(merged$index)
 
-index.average.ortg <- 0
-mean(head(merged$index.pace))
 
 for (i in 1:length(levels(merged$season_end_year))) {
   for (j in 1:length(levels(merged$index_team))) {
@@ -285,7 +282,6 @@ for (i in 1:length(levels(merged$season_end_year))) {
 
 length(merged$index.points)
 length(na.omit(merged$index.points))
-
 length(merged$index.ortg)
 length(na.omit(merged$index.ortg))
 length(merged$index.ftprb)
@@ -294,8 +290,7 @@ length(merged$index.tov)
 length(na.omit(merged$index.tov))
 
 
-head(merged)
-typeof(merged$index.pace)
+
 
 feature.scraper <- function(code){
   code <- toString(code)
