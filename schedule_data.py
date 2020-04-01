@@ -77,7 +77,7 @@ state_dict = {
 team_abbv_dict = {
     'ATLANTA_HAWKS': 'ATL',
     'BOSTON_CELTICS': 'BOS',
-    'BROOKLYN_NETS': 'BKN',
+    'BROOKLYN_NETS': 'BRK',
     'CHARLOTTE_BOBCATS': 'CHA',
     'CHARLOTTE_HORNETS': 'CHO',
     'CHICAGO_BULLS': 'CHI',
