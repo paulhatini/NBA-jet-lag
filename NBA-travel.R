@@ -5,6 +5,8 @@ install.packages('hash')
 install.packages('stringr')
 install.packages('car')
 install.packages('MASS')
+install.packages('lme4')
+
 
 library(rvest)
 library(plyr)
@@ -13,6 +15,7 @@ library(hash)
 library(stringr)
 library(car)
 library(MASS)
+library(lme4)
 
 
 rm(list=ls())
@@ -23,8 +26,8 @@ urls = list()
 
 for (i in 1:length(years)) {
   for (j in 1:length(months)) {
-  url = paste0('https://www.basketball-reference.com/leagues/NBA_',years[i],'_games-',months[j],'.html')
-  urls[[(i-1)*9+j]] = url
+    url = paste0('https://www.basketball-reference.com/leagues/NBA_',years[i],'_games-',months[j],'.html')
+    urls[[(i-1)*9+j]] = url
   }
 }
 
@@ -107,7 +110,7 @@ feature.scraper <- function(code){
   away.orb <- str_match(four.factor.away, '.*orb_pct\"\\s>(.*?)<.*')[2]
   away.ftprb <- str_match(four.factor.away, '.*ft_rate\"\\s>(.*?)<.*')[2]
   away.ortg <- str_match(four.factor.away, '.*off_rtg\"\\s>(.*?)<.*')[2]
-
+  
   four.factor.home <- grep(x=game, "pace\"", value=TRUE)[3]
   home.pace <- str_match(four.factor.home, '.*pace\"\\s>(.*?)<.*')[2]
   home.efg <- str_match(four.factor.home, '.*efg_pct\"\\s>(.*?)<.*')[2]
@@ -184,15 +187,17 @@ for (i in 1:nrow(merged)) {
 }
 
 write.csv(merged, "merged.csv")
+merged <- read.csv(file = 'merged.csv')
+
 
 fit <- lm(Dist_Km ~ index.pace + index.ftprb + index.orb + index.tov + index.efg + index.ortg, data  = merged)
 summary(fit)
 
 fit2 <- lm(Dist_Km ~ index.ortg, data = merged)
 summary(fit2)
+Anova(fit2)
 
 fit3 <- lmer(Dist_Km ~ index.ortg + (1 | season_end_year) + (1 | index_team), data = merged)
 summary(fit3)
-
-
+Anova(fit3)
 
