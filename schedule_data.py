@@ -176,7 +176,7 @@ check = nba_schedule_data.sort_values(by=["index_team", "start_time"])
 
 
 def attach_coordinates(df, coordinate_data):
-    coordinate_select = coordinate_data[['city', 'state_name', 'lat', 'lng']]
+    coordinate_select = coordinate_data[['city', 'state_name', 'lat', 'lng', 'timezone']]
     new_df = pd.merge(df, coordinate_select, left_on=['home_city', 'home_state'], right_on=['city', 'state_name'])
     new_df = new_df.sort_values(by=['index_team', 'start_time']).reset_index(drop=True)
     new_df['Prev_lat'] = new_df.groupby(["index_team", "season_end_year"])['lat'].shift(1)
