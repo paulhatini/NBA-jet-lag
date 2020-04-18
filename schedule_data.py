@@ -179,10 +179,17 @@ def attach_coordinates(df, coordinate_data):
     coordinate_select = coordinate_data[['city', 'state_name', 'lat', 'lng', 'timezone']]
     new_df = pd.merge(df, coordinate_select, left_on=['home_city', 'home_state'], right_on=['city', 'state_name'])
     new_df = new_df.sort_values(by=['index_team', 'start_time']).reset_index(drop=True)
+
     new_df['Prev_lat'] = new_df.groupby(["index_team", "season_end_year"])['lat'].shift(1)
     new_df['Prev_lng'] = new_df.groupby(["index_team", "season_end_year"])['lng'].shift(1)
+
+    new_df['Prev_timezone'] = new_df.groupby(["index_team", "season_end_year"])['timezone'].shift(1)
+
     new_df.loc[new_df['Prev_lat'].isnull(), 'Prev_lat'] = new_df['lat']
     new_df.loc[new_df['Prev_lng'].isnull(), 'Prev_lng'] = new_df['lng']
+
+    new_df.loc[new_df['Prev_timezone'].isnull(), 'Prev_timezone'] = new_df['timezone']
+
     new_df["Dist_Km"] = new_df.apply(lambda x:
                                      mpu.haversine_distance((x['Prev_lat'], x['Prev_lng']),
                                                             (x['lat'], x['lng'])), axis=1)
