@@ -384,13 +384,13 @@ merged$shift <- 0
 
 for(i in 1:nrow(merged)) {
   merged$days_since_last_game[i] <- as.Date(merged$start_time[i]) - as.Date(merged$Prev_game_start[i])
-  merged$shift[i] <- abs(as.numeric(merged$Delta_timezone[i])) - abs(as.numeric(1 + merged$days_since_last_game[i]))
-  if(abs(as.numeric(merged$Delta_timezone[i])) >= 1 + merged$days_since_last_game[i]) {
+  merged$shift[i] <- abs(as.numeric(merged$Delta_timezone[i])) - abs(1 + as.numeric(merged$days_since_last_game[i]))
+  if(abs(as.numeric(merged$Delta_timezone[i])) >= merged$days_since_last_game[i]) {
     merged$jetlag[i] <- TRUE
   }
 }
 
-test <- merged[which(merged$jetlag == TRUE),c(17,18,43,44,48,50,51)]
+test <- merged[which(merged$jetlag == TRUE),c(17,18,24,43,44,48,50,51)]
 
 
 dst(tail(merged$date))
@@ -400,7 +400,7 @@ dst("2018-09-01")
 
 ## need to figure out how to make a jetlag calculation such that jetlag = change in timezone with return to mean by one hour per day
 
-test <- merged[which(index_team == "BOSTON_CELTICS"),c(17,18,43,44,48,50,51)]
+test <- merged[which(index_team == "BOSTON_CELTICS"),c(17,18,24,43,44,48,50,51)]
 
 
 
@@ -422,9 +422,9 @@ merged$opponentid <- paste0(merged$opponent_team, '_', merged$season_end_year)
 
 
 fits1 <- lm(index.ortg ~ jetlag + teamid + opponentid, data = merged[which(merged$home == "away"),], family=binomial(link='logit'))
-summary(glm.fits1)
+summary(fits1)
 fits2 <- lm(index.ortg ~ jetlag + teamid + opponentid, data = merged[which(merged$home == "home"),], family=binomial(link='logit'))
-summary(glm.fits2)
+summary(fits2)
 
 
 
