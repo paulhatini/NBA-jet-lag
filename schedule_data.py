@@ -182,6 +182,7 @@ def attach_coordinates(df, coordinate_data):
 
     new_df['Prev_lat'] = new_df.groupby(["index_team", "season_end_year"])['lat'].shift(1)
     new_df['Prev_lng'] = new_df.groupby(["index_team", "season_end_year"])['lng'].shift(1)
+    new_df['Prev_game_start'] = new_df.groupby(["index_team", "season_end_year"])['start_time'].shift(1)
 
     new_df['Prev_timezone'] = new_df.groupby(["index_team", "season_end_year"])['timezone'].shift(1)
 
